@@ -1,0 +1,41 @@
+import os
+from google.cloud import storage
+
+def process_text_files(data, context):
+    # Retrieve the bucket name from the event payload
+    bucket_name = data['irm-policies']
+    
+    # Initialize the Google Cloud Storage client
+    storage_client = storage.Client()
+    
+    # Get the bucket object
+    bucket = storage_client.bucket(bucket_name)
+    
+    # List all objects in the bucket
+    blobs = storage_client.list_blobs(bucket_name)
+    
+    # Iterate through the blobs
+    for blob in blobs:
+        if blob.name.endswith('.txt'):
+            # Download the text file contents
+            temp_file = '/tmp/temp.txt'
+            blob.download_to_filename(temp_file)
+            
+            # Process the text file
+            with open(temp_file, 'r') as file:
+                contents = file.read()
+                # Do something with the file contents
+                print(f"Processing file: {blob.name}")
+                print(f"File contents: {contents}")
+            
+            # Delete the temporary file
+            os.remove(temp_file)
+        elif blob.name.endswith('/'):
+            # Treat the blob as a folder
+            folder_name = blob.name.rstrip('/')
+            print(f"Processing folder: {folder_name}")
+            # Perform your desired operations on the folder
+            
+        # Skip other file types or objects
+            
+    print("Finished processing all files and folders")
